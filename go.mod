@@ -20,7 +20,7 @@ require (
 )
 
 replace (
-	github.com/kelseyhightower/confd => github.com/projectcalico/confd v1.0.1-0.20200903155834-f4ef90bf07a2
+	github.com/kelseyhightower/confd => github.com/onemankim/confd v1.0.1-0.20210115082641-22d80d085b66
 
 	github.com/sirupsen/logrus => github.com/projectcalico/logrus v1.0.4-calico
 

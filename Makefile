@@ -107,7 +107,7 @@ clean:
 	rm -rf filesystem/etc/calico/confd/conf.d filesystem/etc/calico/confd/config filesystem/etc/calico/confd/templates
 	rm -rf config/
 	# Delete images that we built in this repo
-	docker rmi $(BUILD_IMAGE):latest-$(ARCH) || true
+	docker rmi $(BUILD_IMAGE):hypercloud-$(ARCH) || true
 	docker rmi $(TEST_CONTAINER_NAME) || true
 
 ###############################################################################
@@ -179,7 +179,7 @@ endif
 	docker run --rm -v $(CURDIR)/dist/bin:/go/bin:rw $(CALICO_BUILD) /bin/sh -c "\
 	  echo; echo calico-node-$(ARCH) -v;	 /go/bin/calico-node-$(ARCH) -v; \
 	"
-	docker build --pull -t $(BUILD_IMAGE):latest-$(ARCH) . --build-arg BIRD_IMAGE=$(BIRD_IMAGE) --build-arg QEMU_IMAGE=$(CALICO_BUILD) --build-arg GIT_VERSION=$(GIT_VERSION) -f ./Dockerfile.$(ARCH)
+	docker build --pull -t $(BUILD_IMAGE):hypercloud-$(ARCH) . --build-arg BIRD_IMAGE=$(BIRD_IMAGE) --build-arg QEMU_IMAGE=$(CALICO_BUILD) --build-arg GIT_VERSION=$(GIT_VERSION) -f ./Dockerfile.$(ARCH)
 	touch $@
 
 # download BIRD source to include in image.
@@ -311,10 +311,10 @@ calico-node.tar: $(NODE_CONTAINER_CREATED)
 	# Check versions of the Calico binaries that will be in calico-node.tar.
 	# Since the binaries are built for Linux, run them in a container to allow the
 	# make target to be run on different platforms (e.g. MacOS).
-	docker run --rm $(BUILD_IMAGE):latest-$(ARCH) /bin/sh -c "\
+	docker run --rm $(BUILD_IMAGE):hypercloud-$(ARCH) /bin/sh -c "\
 	  echo bird --version;	 /bin/bird --version; \
 	"
-	docker save --output $@ $(BUILD_IMAGE):latest-$(ARCH)
+	docker save --output $@ $(BUILD_IMAGE):hypercloud-$(ARCH)
 
 .PHONY: st-checks
 st-checks:
@@ -387,7 +387,7 @@ st: remote-deps dist/calicoctl busybox.tar calico-node.tar workload.tar run-etcd
 		   -e HOST_CHECKOUT_DIR=$(CURDIR) \
 		   -e DEBUG_FAILURES=$(DEBUG_FAILURES) \
 		   -e MY_IP=$(LOCAL_IP_ENV) \
-		   -e NODE_CONTAINER_NAME=$(BUILD_IMAGE):latest-$(ARCH) \
+		   -e NODE_CONTAINER_NAME=$(BUILD_IMAGE):hypercloud-$(ARCH) \
 		   --rm -t \
 		   -v /var/run/docker.sock:/var/run/docker.sock \
 		   $(TEST_CONTAINER_NAME) \
@@ -557,12 +557,12 @@ endif
 tag-images: imagetag $(addprefix sub-single-tag-images-arch-,$(call escapefs,$(PUSH_IMAGES))) $(addprefix sub-single-tag-images-non-manifest-,$(call escapefs,$(PUSH_NONMANIFEST_IMAGES)))
 
 sub-single-tag-images-arch-%:
-	docker tag $(BUILD_IMAGE):latest-$(ARCH) $(call unescapefs,$*:$(IMAGETAG)-$(ARCH))
+	docker tag $(BUILD_IMAGE):hypercloud-$(ARCH) $(call unescapefs,$*:$(IMAGETAG)-$(ARCH))
 
 # because some still do not support multi-arch manifest
 sub-single-tag-images-non-manifest-%:
 ifeq ($(ARCH),amd64)
-	docker tag $(BUILD_IMAGE):latest-$(ARCH) $(call unescapefs,$*:$(IMAGETAG))
+	docker tag $(BUILD_IMAGE):hypercloud-$(ARCH) $(call unescapefs,$*:$(IMAGETAG))
 else
 	$(NOECHO) $(NOOP)
 endif
